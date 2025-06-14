@@ -1,19 +1,68 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, Boolean, Integer, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 db = SQLAlchemy()
 
+
 class User(db.Model):
-    id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    __tablename__ = 'user'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user: Mapped[str] = mapped_column(String(25), unique=True, nullable=False)
+    first_name: Mapped[str] = mapped_column(
+        String(25), unique=True, nullable=False)
+    last_name: Mapped[str] = mapped_column(
+        String(25), unique=True, nullable=False)
+    subscription_date: Mapped[str] = mapped_column(
+        String(50), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
+    fav_planet: Mapped[list['Favorite_Planet']]=relationship(
+        back_populates='favorite_by', cascade='all, delete-orphan')
+    fav_character: Mapped[list['Favorite_Character']]=relationship(
+        back_populates='favorite__by', cascade='all, delete-orphan')
 
 
-    def serialize(self):
-        return {
-            "id": self.id,
-            "email": self.email,
-            # do not serialize the password, its a security breach
-        }
+class Planet(db.Model):
+    __tablename__ = 'planet'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(25), unique=True, nullable=False)
+    weather: Mapped[str] = mapped_column(
+        String(25), unique=True, nullable=False)
+    native_characters: Mapped[list['Character']] = relationship(
+        back_populates='native_of', cascade='all, delete-orphan')
+    favorite: Mapped[list['Favorite_Planet']] = relationship(
+        back_populates='planet_inf', cascade='all, delete-orphan')
+
+
+class Character(db.Model):
+    __tablename__= 'character'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(25), unique=True, nullable=False)
+    species: Mapped[str] = mapped_column(
+        String(25), unique=True, nullable=False)
+    planet_origin: Mapped[int] = mapped_column(ForeignKey(Planet.id))
+    native_of: Mapped[Planet]=relationship(
+        back_populates='native_characters')
+    favorites: Mapped[list['Favorite_Character']] = relationship(
+        back_populates='character_inf', cascade='all, delete-orphan')
+    
+class Favorite_Planet(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int]= mapped_column(ForeignKey(User.id))
+    planet_id: Mapped[int]=mapped_column(ForeignKey(Planet.id))
+    favorite_by: Mapped[User]=relationship(
+        back_populates='fav_planet')
+    planet_inf: Mapped[Planet]=relationship(
+        back_populates='favorite')
+
+class Favorite_Character(db.Model):
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int]= mapped_column(ForeignKey(User.id))
+    character_id: Mapped[int]=mapped_column(ForeignKey(Character.id))
+    favorite__by: Mapped[User]=relationship(
+        back_populates='fav_character')
+    character_inf: Mapped[Planet]=relationship(
+        back_populates='favorites')
