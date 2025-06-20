@@ -19,10 +19,10 @@ class User(db.Model):
         String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
-    fav_planet: Mapped[list['Favorite_Planet']]=relationship(
-        back_populates='favorite_by', cascade='all, delete-orphan')
-    fav_character: Mapped[list['Favorite_Character']]=relationship(
-        back_populates='favorite__by', cascade='all, delete-orphan')
+    fav_planet: Mapped[list['Favorite_Planet']] = relationship(
+        back_populates='favorite_planet_by', cascade='all, delete-orphan')
+    fav_character: Mapped[list['Favorite_Character']] = relationship(
+        back_populates='favorite_character_by', cascade='all, delete-orphan')
 
 
 class Planet(db.Model):
@@ -53,16 +53,16 @@ class Favorite_Planet(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int]= mapped_column(ForeignKey(User.id))
     planet_id: Mapped[int]=mapped_column(ForeignKey(Planet.id))
-    favorite_by: Mapped[User]=relationship(
+    favorite_planet_by: Mapped[User] = relationship(
         back_populates='fav_planet')
-    planet_inf: Mapped[Planet]=relationship(
+    planet_inf: Mapped[Planet] = relationship(
         back_populates='favorite')
 
 class Favorite_Character(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int]= mapped_column(ForeignKey(User.id))
     character_id: Mapped[int]=mapped_column(ForeignKey(Character.id))
-    favorite__by: Mapped[User]=relationship(
+    favorite_character_by: Mapped[User] = relationship(
         back_populates='fav_character')
-    character_inf: Mapped[Planet]=relationship(
+    character_inf: Mapped[Character]=relationship(
         back_populates='favorites')
